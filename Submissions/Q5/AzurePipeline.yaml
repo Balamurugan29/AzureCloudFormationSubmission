@@ -1,0 +1,58 @@
+trigger:
+  branches:
+    include:
+      - main
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  awsServiceConnection: 'aws-oidc-federation'
+  awsRegion: 'us-east-1'
+  templatePath: '$(System.DefaultWorkingDirectory)/template.yaml'
+  devStackName: 'MyEC2CftStack-Dev'
+
+stages:
+  - stage: CI_Validation
+    displayName: 'CI - Validate Template'
+    jobs:
+      - job: ValidateTemplate
+        displayName: 'Validate CloudFormation Template'
+        steps:
+          - checkout: self
+            displayName: 'Checkout Code'
+          - task: AWSShellScript@1
+            displayName: 'Validate CloudFormation Template'
+            inputs:
+              awsCredentials: '$(awsServiceConnection)'
+              regionName: '$(awsRegion)'
+              scriptType: 'inline'
+              inlineScript: |
+                aws cloudformation validate-template --template-body file://$(templatePath)
+
+  - stage: Deploy_to_Dev
+    displayName: 'Deploy to Dev Environment'
+    dependsOn: CI_Validation
+    condition: succeeded()
+    jobs:
+      - deployment: DeployDev
+        displayName: 'Deploy to AWS Dev'
+        environment: 'Dev'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: 'Checkout Code'
+                - task: AWSShellScript@1
+                  displayName: 'Deploy CloudFormation Stack to Dev'
+                  inputs:
+                    awsCredentials: '$(awsServiceConnection)'
+                    regionName: '$(awsRegion)'
+                    scriptType: 'inline'
+                    inlineScript: |
+                      aws cloudformation deploy \
+                        --template-file $(templatePath) \
+                        --stack-name $(devStackName) \
+                        --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM
