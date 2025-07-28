@@ -1,1 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a VPC
 
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: balamurugan-vpc
+        - Key: CreatedBy
+          Value: Bala Murugan
