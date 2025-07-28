@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates a VPC and a Public Subnet
+
+Resources:
+  MyVPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/16
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: balamurugan-VPC
+        - Key: CreatedBy
+          Value: Bala Murugan
+
+  MyPublicSubnet:
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: !Ref MyVPC
+        CidrBlock: 10.0.1.0/24
+        AvailabilityZone: us-east-1a
+        MapPublicIpOnLaunch: true
+        Tags:
+          - Key: Name
+            Value: balamurugan-PublicSubnet
+          - Key: CreatedBy
+            Value: Bala Murugan
